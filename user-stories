@@ -5,8 +5,18 @@
 #3 As a user I want to deposit a fund
 #4 As a user I want to withdraw funds
 #5 As a user I want to transfer fund from one account to the other
-#6 As a user I want to check my balance,
+#6 As a user I want to check my balance
 
+#DDBB
+
+User
+-userId
+-username
+-password
+
+Account
+-accountId
+-userId (FKey)
 
 
 
