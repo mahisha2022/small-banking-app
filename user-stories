@@ -1,1 +1,10 @@
-User
+#User Stories
+
+#1 As a user I want to check my balance, 
+#2 As a user I want to deposit a fund
+#3 As a user I want to withdraw funds
+#4 As a user I want to transfer fund from one account to the other
+
+##Bank 
+#1 Create a new account for a user 
+
