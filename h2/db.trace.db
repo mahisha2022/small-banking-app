@@ -1,0 +1,6 @@
+2023-03-07 10:48:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "--h2 is typically used to setup a test database, not a prod database.\000d\000a--first, drop your tables (to reset your database for testing)\000d\000a--then create your tables\000d\000a[*]afdbfdb"; expected "ALTER, ANALYZE"; SQL statement:
+--h2 is typically used to setup a test database, not a prod database.
+--first, drop your tables (to reset your database for testing)
+--then create your tables
+afdbfdb [42001-214]
