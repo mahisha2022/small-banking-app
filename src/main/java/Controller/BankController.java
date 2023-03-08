@@ -135,9 +135,9 @@ public class BankController {
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        if (Integer.parseInt(ctx.pathParam("user")) == user.getId() &&
+        if (Integer.parseInt(ctx.pathParam("user")) == user.user_id &&
             bankUserService.validateUser(user))
-            ctx.json(accountService.getAccountByUserID(user.getId()));
+            ctx.json(accountService.getAccountByUserID(user.user_id));
         ctx.status(200);
     }
 }
