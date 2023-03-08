@@ -1,6 +1,10 @@
 package Service;
 
 import DAO.AccountDAO;
+<<<<<<< HEAD
+=======
+import DAO.BankUserDAO;
+>>>>>>> 2b368aef97c1d30450197fa709fa2a19bfe4c5b5
 import Model.Account;
 import Model.BankUser;
 
@@ -9,7 +13,11 @@ import java.util.concurrent.RecursiveTask;
 
 public class AccountService {
     private AccountDAO accountDAO;
+<<<<<<< HEAD
     private BankUser bankUser;
+=======
+    private BankUserDAO bankUserDAO;
+>>>>>>> 2b368aef97c1d30450197fa709fa2a19bfe4c5b5
 
     public AccountService(AccountDAO accountDAO){
         accountDAO = new AccountDAO();
