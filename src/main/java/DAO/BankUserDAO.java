@@ -64,4 +64,8 @@ public class BankUserDAO {
         return null;
     }
 
+    public boolean isUserValid() {
+        // should check in DDBB if the parameter is a valid user
+        return true;
+    }
 }
