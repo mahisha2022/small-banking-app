@@ -1,10 +1,11 @@
 package Service;
 
 import DAO.AccountDAO;
-<<<<<<< HEAD
+
 import DAO.BankUserDAO;
-=======
->>>>>>> refs/remotes/origin/main
+
+import DAO.BankUserDAO;
+
 import Model.Account;
 import Model.BankUser;
 
@@ -13,11 +14,10 @@ import java.util.concurrent.RecursiveTask;
 
 public class AccountService {
     private AccountDAO accountDAO;
-<<<<<<< HEAD
+
     private BankUserDAO bankUserDAO;
-=======
+
     private BankUser bankUser;
->>>>>>> refs/remotes/origin/main
 
     public AccountService(AccountDAO accountDAO){
         accountDAO = new AccountDAO();

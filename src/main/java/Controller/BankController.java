@@ -96,7 +96,7 @@ public class BankController {
     private void loginHandler(Context context) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         BankUser user = mapper.readValue(context.body(), BankUser.class);
-        BankUser loginUser = bankUserService.addAccount(user);
+        BankUser loginUser = bankUserService.loginAccount(user);
 
         // if unique account return JSON Account
         if (loginUser != null){

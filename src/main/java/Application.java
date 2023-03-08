@@ -24,7 +24,7 @@ public class Application {
         Javalin app = bankController.startAPI();;
         app.start(8080);
 
-        // Interactive menu:
+        // Interactive menu: 1. Create User
         Scanner sc = new Scanner(System.in);
         System.out.println("1. Create User");
         System.out.println("1.1 Insert username:");
@@ -40,10 +40,27 @@ public class Application {
                         "\"password\": \"" + password1 + "\" }"))
                 .header("Content-Type", "application/json")
                 .build();
-        // String requestBody = "{ \"username\": \"" + username + "\", \"password\": \"" + password + "\" }";
         HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
         int status = response.statusCode();
         System.out.println("API Status: " + status);
 
+        // Interactive menu continuation: 2. User Login
+        System.out.println("2. User Login");
+        System.out.println("2.1 Insert User username:");
+        String loginUsername = sc.nextLine();
+        System.out.println("2.2 Insert User password:");
+        String loginPassword = sc.nextLine();
+
+        // Call API to login into user in DDBB
+        HttpRequest loginRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/login"))
+                .POST(HttpRequest.BodyPublishers.ofString("{" +
+                        "\"username\": \"" + loginUsername + "\", " +
+                        "\"password\": \"" + loginPassword + "\" }"))
+                .header("Content-Type", "application/json")
+                .build();
+        HttpResponse loginResponse = webClient.send(loginRequest, HttpResponse.BodyHandlers.ofString());
+        int loginStatus = loginResponse.statusCode();
+        System.out.println("API Login Status: " + loginStatus);
     }
 }

@@ -52,7 +52,7 @@ public class BankUserDAO {
             ResultSet rs = preparedStatement.executeQuery();
 
             while(rs.next()){
-                BankUser logedUser = new BankUser(rs.getInt("account_id"),
+                BankUser logedUser = new BankUser(rs.getInt("user_id"),
                         rs.getString("username"),
                         rs.getString("password"));
                 return logedUser;
