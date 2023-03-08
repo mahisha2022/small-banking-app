@@ -34,4 +34,7 @@ public class BankUserService {
         return accountDAO.loginIntoAccount(bankUser);
     }
 
+    public boolean validateUser(BankUser user) {
+        return accountDAO.isUserValid();
+    }
 }

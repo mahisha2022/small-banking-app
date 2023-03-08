@@ -7,7 +7,7 @@ import DAO.BankUserDAO;
 import DAO.BankUserDAO;
 
 import Model.Account;
-import Model.BankUser;
+//import Model.BankUser;
 
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
@@ -19,7 +19,7 @@ public class AccountService {
 
     private BankUser bankUser;
 
-    public AccountService(AccountDAO accountDAO){
+    public AccountService(){
         accountDAO = new AccountDAO();
     }
 
@@ -29,13 +29,10 @@ public class AccountService {
      * @return
      */
     public Account createNewAccount(Account account){
-        if(bankUserDAO.isUserValid()){
-            Account newAccount = accountDAO.createNewAccount(account);
-            return newAccount;
-        }
-        else {
+        if(bankUserDAO.isUserValid())
+            return accountDAO.createNewAccount(account);
+        else
             return null;
-        }
     }
 
     /**
@@ -56,38 +53,35 @@ public class AccountService {
      * @return
      */
 
-public  Account deposit(Account account, double amount){
-        if(amount > 0){
-            double newAccountBalance = account.getBalance() + amount;
-            accountDAO.updateAccount(account);
-            account.setBalance(newAccountBalance);
-        }
-        else {
-            System.out.println("Deposit amount is not allowed");
-        }
+    public  Account deposit(Account account, double amount){
+            if(amount > 0){
+                double newAccountBalance = account.getBalance() + amount;
+                accountDAO.updateAccount(account);
+                account.setBalance(newAccountBalance);
+            }
+            else {
+                System.out.println("Deposit amount is not allowed");
+            }
 
-    return account;
-}
+        return account;
+    }
 
-    /**
-     * withdraw a fund from a user account
-     * the withdraw amount must be <= user account balance
-     * @param account
-     * @param amount
-     * @return
-     */
+        /**
+         * withdraw a fund from a user account
+         * the withdraw amount must be <= user account balance
+         * @param account
+         * @param amount
+         * @return
+         */
 
-public Account withdraw(Account account, double amount){
-        if(amount > account.getBalance()){
-            System.out.println("Insufficient fund! Please change the withdraw amount ");
-        }
-    double newAccountBalance = account.getBalance() - amount;
-    accountDAO.updateAccount(account);
-    account.setBalance(newAccountBalance);
-    return account;
-}
-
-
-
+    public Account withdraw(Account account, double amount){
+            if(amount > account.getBalance()){
+                System.out.println("Insufficient fund! Please change the withdraw amount ");
+            }
+        double newAccountBalance = account.getBalance() - amount;
+        accountDAO.updateAccount(account);
+        account.setBalance(newAccountBalance);
+        return account;
+    }
 }
 
