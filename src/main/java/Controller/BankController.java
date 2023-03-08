@@ -14,11 +14,11 @@ import io.javalin.http.Context;
 public class BankController {
 
     BankUserService bankUserService;
-    // AccountService accountService; (match account service from Mahlet
+     AccountService accountService;// (match account service from Mahlet
 
     public BankController() {
         this.bankUserService = new BankUserService();
-        // this.accountService = new AccountService();
+        this.accountService = new AccountService();
     }
 
     /**
@@ -32,6 +32,12 @@ public class BankController {
 
         //2. Process logins- POST localhost:8080/login
         app.post("/login", this::loginHandler);
+
+        /* Create new account */
+        app.post("/account/register", this::accountOpenHandler);
+
+        /* Get account */
+        app.get("/users/{user}/accounts", this::accountGetHandler);
 
         /**
         //3. Creation of new messages - POST localhost:8080/messages
@@ -108,4 +114,30 @@ public class BankController {
         }
     }
 
+    /* Get user from request body (JSON) and add user
+     * responds with 400 (error) or 200 (success)
+     */
+    private void accountOpenHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Account account = mapper.readValue(ctx.body(), Account.class);
+        Account newAccount = accountService.createNewAccount(account);
+        if (newAccount == null) {
+            ctx.status(400);
+        } else {
+            ctx.json(mapper.writeValueAsString(newAccount));
+            ctx.status(200);
+        }
+    }
+
+    /* Get user's accounts
+     * responds with 200 and accounts in body
+     */
+    private void accountGetHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        BankUser user = mapper.readValue(ctx.body(), BankUser.class);
+        if (Integer.parseInt(ctx.pathParam("user")) == user.getId() &&
+            bankUserService.validateUser(user))
+            ctx.json(accountService.getAccountByUserID(user.getId()));
+        ctx.status(200);
+    }
 }

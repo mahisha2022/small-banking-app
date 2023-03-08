@@ -1,7 +1,6 @@
 package DAO;
 
 import Model.Account;
-import Service.AccountService;
 import Util.ConnectionSingleton;
 
 import java.security.PublicKey;
@@ -26,8 +25,8 @@ public class AccountDAO {
             preparedStatement.executeUpdate();
             ResultSet pky = preparedStatement.getGeneratedKeys();
             while(pky.next()){
-                int generated_AcctID = pky.getInt(1);
-                return  new Account(generated_AcctID, account.getBalance(), account.getUser());
+                account.setAccount_id(pky.getInt(1));
+                return account;
             }
         } catch (SQLException e){
             System.out.println(e.getMessage());
@@ -91,4 +90,5 @@ public class AccountDAO {
         return accounts;
     }
 
+    public bool validUser
 }

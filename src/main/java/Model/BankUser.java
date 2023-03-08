@@ -1,7 +1,11 @@
 package Model;
 
 public class BankUser {
+    public int user_id;
+    public String username;
+    public String password;
 
-    // FRAN Model, DAO, Service for the BankUser
-
+    public int getId() {
+        return user_id;
+    }
 }
