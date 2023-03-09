@@ -1,7 +1,5 @@
 package Model;
 
-import org.h2.engine.User;
-
 /**
  * This is a class that models an Account
  */
