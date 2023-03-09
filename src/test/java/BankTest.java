@@ -40,6 +40,9 @@ public class BankTest {
 		app.stop();
 	}
 
+	/**
+	* Valid user (username = "user", password = "password") should respond 200 with user as body.
+	*/
 	@Test
 	public void registerTest() throws IOException, InterruptedException {
 		HttpRequest postRequest = HttpRequest.newBuilder()
@@ -55,8 +58,40 @@ public class BankTest {
 		Assert.assertEquals(expectedUser, actualUser);
 	}
 
+	/**
+	* A blank username (username = "") should respond 400
+	*/
 	@Test
 	public void registerBlankUsernameTest() throws IOException, InterruptedException {
+		HttpRequest postRequest = HttpRequest.newBuilder()
+			.uri(URI.create("http://localhost:8080/register"))
+			.POST(HttpRequest.BodyPublishers.ofString(
+				"{\"username\": \"\", \"password\": \"password\" }"
+			)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/**
+	* A password length < 4 should respond 400.
+	*/
+	@Test
+	public void registerShortPasswordTest() throws IOException, InterruptedException {
+		HttpRequest postRequest = HttpRequest.newBuilder()
+			.uri(URI.create("http://localhost:8080/register"))
+			.POST(HttpRequest.BodyPublishers.ofString(
+				"{\"username\": \"user\", \"password\": \"p\" }"
+			)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/**
+	* Trying to add a user with duplicate username should respond 400.
+	*/
+	@Test
+	public void registerDuplicateUserTest() throws IOException, InterruptedException {
+		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
 			.uri(URI.create("http://localhost:8080/register"))
 			.POST(HttpRequest.BodyPublishers.ofString(
