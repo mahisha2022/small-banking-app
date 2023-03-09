@@ -18,9 +18,9 @@ public class BankUserDAO {
      */
     public BankUser insertNewAccount(BankUser newBankUser){
         Connection connection = ConnectionSingleton.getConnection();
+        String sql = "INSERT INTO bank_user (username, password) VALUES (?,?);" ;
         try {
             // assuming database automatically generate a primary key.
-            String sql = "INSERT INTO bank_user(username, password) VALUES (?,?);" ;
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             // preparedStatement's setString method
@@ -30,10 +30,9 @@ public class BankUserDAO {
             preparedStatement.executeUpdate();
             ResultSet pkeyResultSet = preparedStatement.getGeneratedKeys();
             if(pkeyResultSet.next()){
-                int generated_newAccount_id = (int) pkeyResultSet.getLong(1);
-                return new BankUser(generated_newAccount_id, newBankUser.getUsername(), newBankUser.getPassword());
+                newBankUser.setUser_id((int)pkeyResultSet.getLong(1));
+                return newBankUser;
             }
-
         }catch(SQLException e){
             System.out.println(e.getMessage());
         }

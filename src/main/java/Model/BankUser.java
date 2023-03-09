@@ -30,7 +30,8 @@ public class BankUser {
      * @param password
      */
     public BankUser(String username, String password){
-
+        this.username = username;
+        this.password = password;
     }
     /**
      * Whem retrieving an BankUser from the database, all fields will be needed. In that case, a constructor with all fields is needed.

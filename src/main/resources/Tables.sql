@@ -4,6 +4,7 @@
 
 drop table if exists bank_user;
 drop table if exists account;
+drop table if exists transactions;
 
 create table bank_user (
     user_id int primary key auto_increment,
