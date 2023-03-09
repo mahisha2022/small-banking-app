@@ -49,10 +49,10 @@ public class BankTest {
 			)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
-		Account expectedAccount = new Account("user", "password");
-		Account actualAccount = mapper.readValue(response.body().toString(), Account.class);
-		expectedAccount.account_num = actualAccount.account_num;
-		Assert.assertEquals(expectedAccount, actualAccount);
+		BankUser expectedUser = new BankUser("user", "password");
+		BankUser actualUser = mapper.readValue(response.body().toString(), BankUser.class);
+		actualUser.setUser_id(expectedUser.getUser_id());
+		Assert.assertEquals(expectedUser, actualUser);
 	}
 
 	@Test
