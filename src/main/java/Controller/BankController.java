@@ -41,12 +41,10 @@ public class BankController {
         app.post("/account/register", this::accountOpenHandler);
 
         /* Get account */
-        app.get("/users/{user}/accounts", this::accountGetHandler);
+        app.post("/users/accounts", this::accountGetHandler);
         /* Get transaction by user id*/
         app.get("/transactions/{user_id}", this::getTransactionByUserIdHandler);
         app.post("/transactions/{user_id}", this::addTransactionHandler);
-
-
 
         return app;
     }
@@ -105,8 +103,15 @@ public class BankController {
      * responds with 400 (error) or 200 (success)
      */
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        Account account = mapper.readValue(ctx.body(), Account.class);
-        //BankUser user = mapper.readValue(ctx.body(), BankUser.class);
+        String[] jsonStrings = ctx.body().split("\30", 2);
+        BankUser user = mapper.readValue(jsonStrings[0], BankUser.class);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser == null) {
+            ctx.status(400);
+            return;
+        }
+        Account account = mapper.readValue(jsonStrings[1], Account.class);
+        account.setUser(loginUser.getUser_id());
         Account newAccount = AccountService.createNewAccount(account);
         if (newAccount == null) {
             ctx.status(400);
@@ -121,10 +126,13 @@ public class BankController {
      */
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
         BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        if (Integer.parseInt(ctx.pathParam("user")) == user.getUser_id()/* &&
-            BankUserService.validateUser(user)*/)
-            ctx.json(AccountService.getAccountByUserID(user.getUser_id()));
-        ctx.status(200);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser != null) {
+            ctx.json(AccountService.getAccountsByUserID(loginUser.getUser_id()));
+            ctx.status(200);
+        } else {
+            ctx.status(401);
+        }
     }
 
     private void getTransactionByUserIdHandler(Context ctx) throws JsonProcessingException{
