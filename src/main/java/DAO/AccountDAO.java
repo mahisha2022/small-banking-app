@@ -89,6 +89,4 @@ public class AccountDAO {
         }
         return accounts;
     }
-
-    public bool validUser
 }

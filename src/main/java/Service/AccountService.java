@@ -17,8 +17,6 @@ public class AccountService {
 
     private BankUserDAO bankUserDAO;
 
-    private BankUser bankUser;
-
     public AccountService(){
         accountDAO = new AccountDAO();
     }
