@@ -68,7 +68,7 @@ public class BankUserDAO {
      * @return
      */
 
-    public BankUser getUserById(int user_id){
+    public static BankUser getUserById(int user_id){
 
         Connection connection = ConnectionSingleton.getConnection();
         try {
@@ -94,7 +94,7 @@ public class BankUserDAO {
         return null;
     }
 
-    public boolean isUserValid(int user_id) {
+    public static boolean isUserValid(int user_id) {
         // should check in DDBB if the parameter is a valid user
         if(getUserById(user_id) == null){
             return false;

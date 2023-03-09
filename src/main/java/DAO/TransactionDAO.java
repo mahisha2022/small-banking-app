@@ -4,6 +4,7 @@ import Model.Transaction;
 import Model.TransactionType;
 import Util.ConnectionSingleton;
 
+import java.util.Date;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +59,8 @@ public class TransactionDAO {
             while (rs.next()){
                 //create a string type for transaction_type
                 String transactionTypeString = rs.getString("transaction_type");
-                Transaction newTransaction = new Transaction(rs.getInt("transaction_id"), TransactionType.valueOf(transactionTypeString),
-                        rs.getDouble("amount"), rs.getTime("transaction_time"), rs.getInt("account_user"),
+                Transaction newTransaction = new Transaction(rs.getInt("transaction_id"), transactionTypeString,
+                        rs.getDouble("amount"), new Date(rs.getTime("transaction_time").getTime()), rs.getInt("account_user"),
                         rs.getInt("account_id"));
 
                 transactions.add(newTransaction);

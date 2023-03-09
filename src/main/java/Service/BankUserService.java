@@ -1,5 +1,6 @@
 package Service;
 
+import DAO.AccountDAO;
 import DAO.BankUserDAO;
 import Model.BankUser;
 
@@ -15,9 +16,5 @@ public class BankUserService {
         //The login will be successful if and only if the username and password provided in the request body JSON match a real account existing on the database.
 
         return BankUserDAO.loginUser(bankUser);
-    }
-
-    public boolean validateUser(BankUser user) {
-        return accountDAO.isUserValid(user.user_id);
     }
 }

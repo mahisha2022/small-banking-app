@@ -1,7 +1,7 @@
 package Service;
 
 import DAO.BankUserDAO;
-import DAO.AccountDAO
+import DAO.AccountDAO;
 import Model.Account;
 import Model.Transaction;
 
@@ -17,6 +17,9 @@ public class AccountService {
     public static Account createNewAccount(Account account){
         if(BankUserDAO.isUserValid(account.getUser()))
             return AccountDAO.createNewAccount(account);
+        else
+            return null;
+    }
 
     /**
      *
@@ -42,6 +45,7 @@ public class AccountService {
             account.setBalance(newAccountBalance);
             AccountDAO.updateAccount(account);
 
+            Transaction transaction = new Transaction();
             transaction.setTransactionType("Deposit");
             transaction.setAmount(amount);
             transaction.setAccountUser(account.getUser());
@@ -72,6 +76,7 @@ public class AccountService {
         AccountDAO.updateAccount(account);
         account.setBalance(newAccountBalance);
 
+        Transaction transaction = new Transaction();
         transaction.setTransactionType("Withdrawal");
         transaction.setAmount(-amount);
         transaction.setAccountUser(account.getUser());
