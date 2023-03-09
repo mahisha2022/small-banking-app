@@ -1,6 +1,6 @@
 package Model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Transaction {
 
@@ -9,7 +9,7 @@ public class Transaction {
     //    private String transactionType;
     private double amount;
 
-    private Date transactionTime;
+    private LocalDateTime transactionTime;
     private int accountUser;
     private int accountID;
 
@@ -19,7 +19,18 @@ public class Transaction {
 
     }
 
-    public Transaction(int transactionId, String transactionType, double amount, Date transactionTime,
+    public Transaction( String transactionType, double amount, LocalDateTime transactionTime,
+                       int accountUser, int accountID) {
+
+        this.transactionType = transactionType;
+        this.amount = amount;
+        this.transactionTime = transactionTime;
+        this.accountUser = accountUser;
+        this.accountID = accountID;
+
+    }
+
+    public Transaction(int transactionId, String transactionType, double amount, LocalDateTime transactionTime,
                        int accountUser, int accountID) {
         TransactionId = transactionId;
         this.transactionType = transactionType;
@@ -54,11 +65,11 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public Date getTransactionTime() {
+    public LocalDateTime getTransactionTime() {
         return transactionTime;
     }
 
-    public void setTransactionTime(Date transactionTime) {
+    public void setTransactionTime(LocalDateTime transactionTime) {
         this.transactionTime = transactionTime;
     }
 
