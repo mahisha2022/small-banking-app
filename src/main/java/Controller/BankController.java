@@ -31,7 +31,7 @@ public class BankController {
         app.post("/account/register", this::accountOpenHandler);
 
         /* Get account */
-        app.get("/users/{user}/accounts", this::accountGetHandler);
+        app.get("/users/accounts", this::accountGetHandler);
 
         /**
         //3. Creation of new messages - POST localhost:8080/messages
@@ -106,13 +106,23 @@ public class BankController {
         }
     }
 
+    /* Container to recieve JSON object */
+    public class UserAccountPair {
+        public BankUser user;
+        public Account account;
+    }
     /* Get user from request body (JSON) and add user
      * responds with 400 (error) or 200 (success)
      */
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        Account account = mapper.readValue(ctx.body(), Account.class);
-        //BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        Account newAccount = AccountService.createNewAccount(account);
+        UserAccountPair body = mapper.readValue(ctx.body(), UserAccountPair.class);
+        BankUser user = BankUserService.loginUser(body.user);
+        if (user == null) {
+            ctx.status(400);
+            return;
+        }
+        body.account.setUser(body.user.getUser_id());
+        Account newAccount = AccountService.createNewAccount(body.account);
         if (newAccount == null) {
             ctx.status(400);
         } else {
@@ -126,9 +136,8 @@ public class BankController {
      */
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
         BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        if (Integer.parseInt(ctx.pathParam("user")) == user.getUser_id() &&
-            BankUserService.validateUser(user))
-            ctx.json(AccountService.getAccountByUserID(user.getUser_id()));
+        if (BankUserService.loginUser(user) != null)
+            ctx.json(AccountService.getAccountsByUserID(user.getUser_id()));
         ctx.status(200);
     }
 }

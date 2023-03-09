@@ -139,7 +139,7 @@ public class BankTest {
 	* Login attempt with incorrect password should fail (respond 401).
 	*/
 	@Test
-	public void loginIncorrecPasswordTest() throws IOException, InterruptedException {
+	public void loginIncorrectPasswordTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postLoginRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:8080/login"))
@@ -149,5 +149,27 @@ public class BankTest {
 		.build();
 		HttpResponse loginResponse = webClient.send(postLoginRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(401, loginResponse.statusCode());
+	}
+	
+	/**
+	* Account enpoints
+	* 
+	*/
+	@Test
+	public void newAccountTest() throws IOException, InterruptedException {
+		registerTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:8080/account/register"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"user\": {\"username\": \"user\", \"password\": \"password\"}, " +
+			"\"account\": {\"balance\": 10.00}}" +
+			""
+		)).header("Content-Type", "application/json")
+		.build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		Account expected = new Account(1, 10.f, 1);
+		Account actual = mapper.readValue(response.body().toString(), Account.class);
+		Assert.assertEquals(expected, actual);
 	}
 }
