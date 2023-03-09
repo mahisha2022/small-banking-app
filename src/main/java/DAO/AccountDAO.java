@@ -38,13 +38,10 @@ public class AccountDAO {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet rs = preparedStatement.executeQuery();
 
-            while (rs.next()){
-                Account account = new Account(rs.getInt("account_id"),
-                                           rs.getDouble("balance"),
-                                           rs.getInt("account_user"));
-                accounts.add(account);
-
-            }
+            while (rs.next())
+                accounts.add(
+                    new Account(rs.getInt("account_id"), rs.getDouble("balance"), rs.getInt("account_user"))
+                );
         } catch (SQLException e){
             System.out.println(e.getMessage());
         }
@@ -59,14 +56,14 @@ public class AccountDAO {
             preparedStatement.setInt(2, account.getAccount_id());
 
             preparedStatement.executeUpdate();
-
-        } catch (SQLException e){
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
+            return null;
         }
         return account;
     }
 
-    public static List<Account> getAccountByUserID(int account_user){
+    public static List<Account> getAccountsByUserID(int account_user){
 
         List<Account> accounts = new ArrayList<>();
         try {
@@ -75,13 +72,11 @@ public class AccountDAO {
             preparedStatement.setInt(1, account_user);
 
             ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next()){
-                Account newAccount = new Account(rs.getInt("account_id"),
-                                                 rs.getDouble("balance"),
-                                                rs.getInt("account_user"));
-                accounts.add(newAccount);
-            }
-        } catch (SQLException e){
+            while (rs.next())
+                accounts.add(
+                    new Account(rs.getInt("account_id"), rs.getDouble("balance"), rs.getInt("account_user"))
+                );
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return accounts;

@@ -27,8 +27,8 @@ public class AccountService {
      * @return
      */
 
-    public static List<Account> getAccountByUserID(int account_user){
-        return AccountDAO.getAccountByUserID(account_user);
+    public static List<Account> getAccountsByUserID(int account_user){
+        return AccountDAO.getAccountsByUserID(account_user);
     }
 
     /**
