@@ -9,12 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccountDAO {
-    Connection connection = ConnectionSingleton.getConnection();
-    public AccountDAO(){
+    private static Connection connection = ConnectionSingleton.getConnection();
 
-    }
-
-    public Account createNewAccount(Account account){
+    public static Account createNewAccount(Account account){
         try {
             String sql = "INSERT INTO account (balance, account_user) VALUES (?,?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -34,7 +31,7 @@ public class AccountDAO {
         return  null;
     }
 
-    public List<Account> getAllAccounts(){
+    public static List<Account> getAllAccounts(){
         List<Account> accounts = new ArrayList<>();
         try {
             String sql = "SELECT * FROM account";
@@ -54,7 +51,7 @@ public class AccountDAO {
         return accounts;
     }
 
-    public Account updateAccount(Account account){
+    public static Account updateAccount(Account account){
         try {
             String sql = "UPDATE account SET amount = ? WHERE account_id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -69,7 +66,7 @@ public class AccountDAO {
         return account;
     }
 
-    public List<Account> getAccountByUserID(int account_user){
+    public static List<Account> getAccountByUserID(int account_user){
 
         List<Account> accounts = new ArrayList<>();
         try {
