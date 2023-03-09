@@ -35,6 +35,6 @@ public class BankUserService {
     }
 
     public boolean validateUser(BankUser user) {
-        return accountDAO.isUserValid();
+        return accountDAO.isUserValid(user.user_id);
     }
 }

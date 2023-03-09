@@ -13,13 +13,13 @@ public class Transaction {
     private int accountUser;
     private int accountID;
 
-    private TransactionType transactionType;
+    private String transactionType;
 
     public Transaction(){
 
     }
 
-    public Transaction(int transactionId, TransactionType transactionType, double amount, Date transactionTime,
+    public Transaction(int transactionId, String transactionType, double amount, Date transactionTime,
                        int accountUser, int accountID) {
         TransactionId = transactionId;
         this.transactionType = transactionType;
@@ -38,11 +38,11 @@ public class Transaction {
         TransactionId = transactionId;
     }
 
-    public TransactionType getTransactionType() {
+    public String getTransactionType() {
         return transactionType;
     }
 
-    public void setTransactionType(TransactionType transactionType) {
+    public void setTransactionType(String transactionType) {
         this.transactionType = transactionType;
     }
 

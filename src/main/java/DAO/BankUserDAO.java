@@ -1,8 +1,9 @@
 package DAO;
 
-import java.sql.*;
-import Model.*;
+import Model.BankUser;
 import Util.ConnectionSingleton;
+
+import java.sql.*;
 
 public class BankUserDAO {
 
@@ -64,8 +65,42 @@ public class BankUserDAO {
         return null;
     }
 
-    public boolean isUserValid() {
+    /**
+     * Get Bank user by id
+     * @return
+     */
+
+    public BankUser getUserById(int user_id){
+
+        Connection connection = ConnectionSingleton.getConnection();
+        try {
+
+
+            String sql = "SELECT * FROM bank_user WHERE user_id = ?";
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, user_id);
+
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()){
+                BankUser bankUser = new BankUser(rs.getInt("user_id"),
+                        rs.getString("username"),
+                        rs.getString("password"));
+                return  bankUser;
+            }
+
+
+        } catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean isUserValid(int user_id) {
         // should check in DDBB if the parameter is a valid user
+        if(getUserById(user_id) == null){
+            return false;
+        }
         return true;
     }
 }
