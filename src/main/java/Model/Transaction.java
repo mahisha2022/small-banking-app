@@ -5,37 +5,45 @@ import java.util.Date;
 public class Transaction {
 
     private int TransactionId;
-    private Date transactionDateAndTime;
-    private double amount;
-    private int userId;
-    private String transactionId;
 
-    public Transaction(int transactionId, Date transactionDateAndTime, double amount, int userId, String transactionId1) {
+    //    private String transactionType;
+    private double amount;
+
+    private Date transactionTime;
+    private int accountUser;
+    private int accountID;
+
+    private TransactionType transactionType;
+
+    public Transaction(){
+
+    }
+
+    public Transaction(int transactionId, TransactionType transactionType, double amount, Date transactionTime,
+                       int accountUser, int accountID) {
         TransactionId = transactionId;
-        this.transactionDateAndTime = transactionDateAndTime;
+        this.transactionType = transactionType;
         this.amount = amount;
-        this.userId = userId;
-        this.transactionId = transactionId1;
+        this.transactionTime = transactionTime;
+        this.accountUser = accountUser;
+        this.accountID = accountID;
+
     }
 
     public int getTransactionId() {
         return TransactionId;
     }
 
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
-
     public void setTransactionId(int transactionId) {
         TransactionId = transactionId;
     }
 
-    public Date getTransactionDateAndTime() {
-        return transactionDateAndTime;
+    public TransactionType getTransactionType() {
+        return transactionType;
     }
 
-    public void setTransactionDateAndTime(Date transactionDateAndTime) {
-        this.transactionDateAndTime = transactionDateAndTime;
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
     public double getAmount() {
@@ -46,13 +54,29 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public int getUserId() {
-        return userId;
+    public Date getTransactionTime() {
+        return transactionTime;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setTransactionTime(Date transactionTime) {
+        this.transactionTime = transactionTime;
     }
 
+    public int getAccountUser() {
+        return accountUser;
+    }
 
+    public void setAccountUser(int accountUser) {
+        this.accountUser = accountUser;
+    }
+
+    public int getAccountID() {
+        return accountID;
+    }
+
+    public void setAccountID(int accountID) {
+        this.accountID = accountID;
+    }
 }
+
+
