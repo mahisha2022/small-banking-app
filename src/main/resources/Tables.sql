@@ -2,9 +2,9 @@
 --first, drop your tables (to reset your database for testing)
 --then create your tables
 
-drop table if exists bank_user;
-drop table if exists account;
 drop table if exists transactions;
+drop table if exists account;
+drop table if exists bank_user;
 
 create table bank_user (
     user_id int primary key auto_increment,
