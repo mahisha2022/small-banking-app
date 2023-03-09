@@ -12,20 +12,14 @@ import io.javalin.http.Context;
 
 // Defining endpoints and handlers for controller
 public class BankController {
-
-    BankUserService bankUserService;
-     AccountService accountService;// (match account service from Mahlet
-
-    public BankController() {
-        this.bankUserService = new BankUserService();
-        this.accountService = new AccountService();
-    }
-
+    private ObjectMapper mapper;
     /**
      * Endpoints in the startAPI() method, as the test suite must receive a Javalin object from this method.
      * @return a Javalin app object which defines the behavior of the Javalin controller.
      */
     public Javalin startAPI() {
+        mapper = new ObjectMapper();
+
         Javalin app = Javalin.create();
         //1. Process registration - POST localhost:8080/register
         app.post("/register", this::registerHandler);
@@ -73,11 +67,10 @@ public class BankController {
      *
      */
     private void registerHandler(Context context) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         BankUser user = mapper.readValue(context.body(), BankUser.class);
-        BankUser addedUser = bankUserService.addAccount(user);
+        BankUser addedUser = BankUserService.addUser(user);
 
-        // if new unique account return JSON Account
+        // if new unique user return JSON BankUser
         if (addedUser != null){
             context.json(mapper.writeValueAsString(addedUser));
             context.status(200);
@@ -91,8 +84,8 @@ public class BankController {
      * 2: API should be able to process User logins.
      * Verify login on the endpoint POST localhost:8080/login.
      * The request body will contain a JSON representation of a BankUser, not containing an user_id. In the future, this action may generate a Session token to allow the user to securely use the site. We will not worry about this for now.
-     *   - The login will be successful if and only if the username and password provided in the request body JSON match a real account existing on the database.
-     *     If successful, the response body should contain a JSON of the account in the response body, including its account_id.
+     *   - The login will be successful if and only if the username and password provided in the request body JSON match a real user existing on the database.
+     *     If successful, the response body should contain a JSON of the user in the response body, including its user_id.
      *     The response status should be 200 OK, which is the default.
      *   - If the login is not successful, the response status should be 401. (Unauthorized)
      *
@@ -100,11 +93,10 @@ public class BankController {
      * @throws JsonProcessingException
      */
     private void loginHandler(Context context) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         BankUser user = mapper.readValue(context.body(), BankUser.class);
-        BankUser loginUser = bankUserService.loginAccount(user);
+        BankUser loginUser = BankUserService.loginUser(user);
 
-        // if unique account return JSON Account
+        // if unique user return JSON BankUser
         if (loginUser != null){
             context.json(mapper.writeValueAsString(loginUser));
             context.status(200);
@@ -118,9 +110,9 @@ public class BankController {
      * responds with 400 (error) or 200 (success)
      */
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         Account account = mapper.readValue(ctx.body(), Account.class);
-        Account newAccount = accountService.createNewAccount(account);
+        //BankUser user = mapper.readValue(ctx.body(), BankUser.class);
+        Account newAccount = AccountService.createNewAccount(account);
         if (newAccount == null) {
             ctx.status(400);
         } else {
@@ -133,11 +125,10 @@ public class BankController {
      * responds with 200 and accounts in body
      */
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        if (Integer.parseInt(ctx.pathParam("user")) == user.user_id &&
-            bankUserService.validateUser(user))
-            ctx.json(accountService.getAccountByUserID(user.user_id));
+        if (Integer.parseInt(ctx.pathParam("user")) == user.getUser_id() &&
+            BankUserService.validateUser(user))
+            ctx.json(AccountService.getAccountByUserID(user.getUser_id()));
         ctx.status(200);
     }
 }

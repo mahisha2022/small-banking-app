@@ -1,40 +1,23 @@
 package Service;
 
-import DAO.*;
-import Model.*;
+import DAO.BankUserDAO;
+import Model.BankUser;
 
 public class BankUserService {
+    public static BankUser addUser(BankUser bankUser){
+        //The registration will be successful if and only if the username is not blank, the password is at least 4 characters long, and an User with that username does not already exist. If all these conditions are met, the response body should contain a JSON of the User, including its user_id. The response status should be 200 OK, which is the default. The new user should be persisted to the database.
+        if (bankUser.getUsername() == "" || bankUser.getPassword().length() < 4) return null;
 
-    private BankUserDAO accountDAO;
-
-    //Constructor for creating new AccountService() with a new AccountDAO()
-    public BankUserService(){
-        accountDAO = new BankUserDAO();
+        return BankUserDAO.insertNewUser(bankUser);
     }
 
-    /**
-     * Constructor when AccountDAO is provided
-     * @param accountDAO
-     */
-    public BankUserService(BankUserDAO accountDAO){
-        this.accountDAO = new BankUserDAO();
-    }
-
-    public BankUser addAccount(BankUser bankUser){
-        //The registration will be successful if and only if the username is not blank, the password is at least 4 characters long, and an Account with that username does not already exist. If all these conditions are met, the response body should contain a JSON of the Account, including its account_id. The response status should be 200 OK, which is the default. The new account should be persisted to the database.
-        if (bankUser.username == "") return null;
-        if (bankUser.password.length() < 4) return null;
-
-        return accountDAO.insertNewAccount(bankUser);
-    }
-
-    public BankUser loginAccount(BankUser bankUser){
+    public static BankUser loginUser(BankUser bankUser){
         //The login will be successful if and only if the username and password provided in the request body JSON match a real account existing on the database.
 
-        return accountDAO.loginIntoAccount(bankUser);
+        return BankUserDAO.loginUser(bankUser);
     }
 
-    public boolean validateUser(BankUser user) {
-        return accountDAO.isUserValid();
+    public static boolean validateUser(BankUser user) {
+        return true;
     }
 }
