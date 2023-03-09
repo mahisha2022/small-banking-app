@@ -1,18 +1,28 @@
 package Controller;
 
-import java.util.List;
-
+import Model.Account;
+import Model.BankUser;
+import Model.Transaction;
+import Service.AccountService;
+import Service.BankUserService;
+import Service.TransactionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import Model.*;
-import Service.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+
+import java.util.List;
 
 // Defining endpoints and handlers for controller
 public class BankController {
     private ObjectMapper mapper;
+    private TransactionService transactionService;
+    private BankUserService bankUserService;
+
+    public BankController(){
+        this.transactionService = new TransactionService();
+        this.bankUserService = new BankUserService();
+    }
     /**
      * Endpoints in the startAPI() method, as the test suite must receive a Javalin object from this method.
      * @return a Javalin app object which defines the behavior of the Javalin controller.
@@ -32,26 +42,11 @@ public class BankController {
 
         /* Get account */
         app.get("/users/{user}/accounts", this::accountGetHandler);
+        /* Get transaction by user id*/
+        app.get("/transactions/{user_id}", this::getTransactionByUserIdHandler);
+        app.post("/transactions/{user_id}", this::addTransactionHandler);
 
-        /**
-        //3. Creation of new messages - POST localhost:8080/messages
-        app.post("/messages", this::messagesHandler);
 
-        //4. Retrieve all messages - GET localhost:8080/messages
-        app.get("/messages", this::getAllMessagesHandler);
-
-        //5. Get a message by its Id - GET localhost:8080/messages/{message_id}
-        app.get("/messages/{message_id}", this::getMessageByIdHandler);
-
-        //6. Delete a message - DELETE localhost:8080/messages/{message_id}
-        app.delete("/messages/{message_id}", this::deleteMessageHandler);
-
-        //7. Patch message by Id - PATCH localhost:8080/messages/{message_id}
-        app.patch("/messages/{message_id}", this::patchMessageByIdHandler);
-
-        //8. Get a message by its account Id - GET localhost:8080/accounts/{account_id}/messages.
-        app.get("/accounts/{account_id}/messages", this::getMessageByAccIdHandler);
-        */
 
         return app;
     }
@@ -130,5 +125,25 @@ public class BankController {
             BankUserService.validateUser(user)*/)
             ctx.json(AccountService.getAccountByUserID(user.getUser_id()));
         ctx.status(200);
+    }
+
+    private void getTransactionByUserIdHandler(Context ctx) throws JsonProcessingException{
+        int user_id = Integer.parseInt(ctx.pathParam("userId"));
+        List<Transaction> transactionByUserID = transactionService.getTransactionByUserID(user_id);
+        ctx.json(mapper.writeValueAsString(transactionByUserID));
+
+
+    }
+
+    private void addTransactionHandler(Context ctx) throws JsonProcessingException{
+        Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
+        Transaction newTransaction = transactionService.addTransaction(transaction);
+
+        if(newTransaction != null){
+            ctx.json(mapper.writeValueAsString(newTransaction));
+        }
+        else {
+            ctx.status(400);
+        }
     }
 }
