@@ -3,12 +3,14 @@ import Model.BankUser;
 import Model.Account;
 import Model.Transaction;
 import Util.ConnectionSingleton;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.After;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
 
@@ -112,8 +114,7 @@ public class BankTest {
 			.uri(URI.create("http://localhost:8080/login"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"password\"}"
-			)).header("Content-Type", "application/json")
-			.build();
+			)).header("Content-Type", "application/json").build();
 		HttpResponse loginResponse = webClient.send(postLoginRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, loginResponse.statusCode());
 		BankUser expectedUser = new BankUser(1, "user", "password");
@@ -129,8 +130,7 @@ public class BankTest {
 			.uri(URI.create("http://localhost:8080/login"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"user\", \"password\": \"password\"}"
-			)).header("Content-Type", "application/json")
-			.build();
+			)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(401, response.statusCode());
 	}
@@ -145,15 +145,15 @@ public class BankTest {
 		.uri(URI.create("http://localhost:8080/login"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"wrongpassword\"}"
-		)).header("Content-Type", "application/json")
-		.build();
+		)).header("Content-Type", "application/json").build();
 		HttpResponse loginResponse = webClient.send(postLoginRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(401, loginResponse.statusCode());
 	}
 	
 	/**
 	* Account enpoints
-	* 
+	* Registers a new account under a BankUser
+	* Should respond 200
 	*/
 	@Test
 	public void newAccountTest() throws IOException, InterruptedException {
@@ -163,12 +163,64 @@ public class BankTest {
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"password\"}" + '\30' +
 			"{\"balance\": 10.0}"
-		)).header("Content-Type", "application/json")
-		.build();
+		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
 		Account expected = new Account(1, 10.f, 1);
 		Account actual = mapper.readValue(response.body().toString(), Account.class);
 		Assert.assertEquals(expected, actual);
+	}
+
+	/*
+	* Tries to register a new account under a BankUser that doesn't exist
+	* Should respond 400
+	*/
+	@Test
+	public void newAccountInvalidUserTest() throws IOException, InterruptedException {
+		registerTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:8080/account/register"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"username\": \"notuser\", \"password\": \"password\"}" + '\30' +
+			"{\"balance\": 10.0}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	* Tries to register a new account under a BankUser using the wrong password
+	* Should respond 400
+	*/
+	@Test
+	public void newAccountWrongCredTest() throws IOException, InterruptedException {
+		registerTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:8080/account/register"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"username\": \"user\", \"password\": \"wrongpassword\"}" + '\30' +
+			"{\"balance\": 10.0}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	 * GET all accounts for a given user
+	 */
+	@Test
+	public void getUserAccountsTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:8080/users/accounts"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"username\": \"user\", \"password\": \"password\"}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		Account expected = new Account(1, 10.f, 1);
+		List<Account> actual = mapper.readValue(response.body().toString(), new TypeReference<List<Account>>(){});
+		Assert.assertEquals(1, actual.size());
+		Assert.assertTrue(actual.contains(expected));
 	}
 }

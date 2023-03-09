@@ -31,7 +31,7 @@ public class BankController {
         app.post("/account/register", this::accountOpenHandler);
 
         /* Get account */
-        app.get("/users/accounts", this::accountGetHandler);
+        app.post("/users/accounts", this::accountGetHandler);
 
         /**
         //3. Creation of new messages - POST localhost:8080/messages
@@ -133,8 +133,12 @@ public class BankController {
      */
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
         BankUser user = mapper.readValue(ctx.body(), BankUser.class);
-        if (BankUserService.loginUser(user) != null)
-            ctx.json(AccountService.getAccountsByUserID(user.getUser_id()));
-        ctx.status(200);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser != null) {
+            ctx.json(AccountService.getAccountsByUserID(loginUser.getUser_id()));
+            ctx.status(200);
+        } else {
+            ctx.status(401);
+        }
     }
 }
