@@ -38,6 +38,18 @@
             <version>2.1.214</version>
         </dependency>
     </dependencies>
+    <dependency>
+        <!-- junit, our framework for writing unit tests.-->
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>4.9.0</version>
+    </dependency>
 
     <build>
         <plugins>
