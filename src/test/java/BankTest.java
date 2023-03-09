@@ -161,9 +161,8 @@ public class BankTest {
 		HttpRequest postRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:8080/account/register"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"user\": {\"username\": \"user\", \"password\": \"password\"}, " +
-			"\"account\": {\"balance\": 10.00}}" +
-			""
+			"{\"username\": \"user\", \"password\": \"password\"}" + '\30' +
+			"{\"balance\": 10.0}"
 		)).header("Content-Type", "application/json")
 		.build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());

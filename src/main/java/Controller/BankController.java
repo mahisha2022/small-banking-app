@@ -106,23 +106,20 @@ public class BankController {
         }
     }
 
-    /* Container to recieve JSON object */
-    public class UserAccountPair {
-        public BankUser user;
-        public Account account;
-    }
     /* Get user from request body (JSON) and add user
      * responds with 400 (error) or 200 (success)
      */
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        UserAccountPair body = mapper.readValue(ctx.body(), UserAccountPair.class);
-        BankUser user = BankUserService.loginUser(body.user);
-        if (user == null) {
+        String[] jsonStrings = ctx.body().split("\30", 2);
+        BankUser user = mapper.readValue(jsonStrings[0], BankUser.class);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser == null) {
             ctx.status(400);
             return;
         }
-        body.account.setUser(body.user.getUser_id());
-        Account newAccount = AccountService.createNewAccount(body.account);
+        Account account = mapper.readValue(jsonStrings[1], Account.class);
+        account.setUser(loginUser.getUser_id());
+        Account newAccount = AccountService.createNewAccount(account);
         if (newAccount == null) {
             ctx.status(400);
         } else {
