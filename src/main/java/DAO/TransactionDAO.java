@@ -1,11 +1,10 @@
 package DAO;
 
 import Model.Transaction;
-import Model.TransactionType;
 import Util.ConnectionSingleton;
 
-import java.util.Date;
 import java.sql.*;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class TransactionDAO {
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, transaction.getTransactionType().toString());
             preparedStatement.setDouble(2, transaction.getAmount());
-            preparedStatement.setTimestamp(3, new Timestamp(transaction.getTransactionTime().getTime()));
+            preparedStatement.setTimestamp(3, Timestamp.valueOf(transaction.getTransactionTime()));
             preparedStatement.setInt(4, transaction.getAccountUser());
             preparedStatement.setInt(5, transaction.getAccountID());
 
@@ -60,7 +59,7 @@ public class TransactionDAO {
                 //create a string type for transaction_type
                 String transactionTypeString = rs.getString("transaction_type");
                 Transaction newTransaction = new Transaction(rs.getInt("transaction_id"), transactionTypeString,
-                        rs.getDouble("amount"), new Date(rs.getTime("transaction_time").getTime()), rs.getInt("account_user"),
+                        rs.getDouble("amount"), (rs.getDate("transaction_time").toLocalDate().atTime(LocalTime.now())), rs.getInt("account_user"),
                         rs.getInt("account_id"));
 
                 transactions.add(newTransaction);

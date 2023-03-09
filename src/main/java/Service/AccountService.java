@@ -1,14 +1,23 @@
 package Service;
 
-import DAO.BankUserDAO;
 import DAO.AccountDAO;
+import DAO.BankUserDAO;
+import DAO.TransactionDAO;
 import Model.Account;
 import Model.Transaction;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class AccountService {
+
+    private TransactionDAO transactionDAO;
+    private AccountDAO accountDAO;
+    public AccountService(TransactionDAO transactionDAO, AccountDAO accountDAO){
+        this.transactionDAO = transactionDAO;
+        this.accountDAO = accountDAO;
+
+    }
     /**
      * Create a new account for existed user, validate the user before creating new account
      * @param account
@@ -39,18 +48,21 @@ public class AccountService {
      * @return
      */
 
-    public static Account deposit(Account account, double amount){
+    public  Account deposit(Account account, double amount){
         if(amount > 0){
             double newAccountBalance = account.getBalance() + amount;
             account.setBalance(newAccountBalance);
-            AccountDAO.updateAccount(account);
+            accountDAO.updateAccount(account);
 
-            Transaction transaction = new Transaction();
-            transaction.setTransactionType("Deposit");
-            transaction.setAmount(amount);
-            transaction.setAccountUser(account.getUser());
-            transaction.setTransactionTime(new Date());
-            transaction.setAccountID(account.getAccount_id());
+//            Transaction transaction = new Transaction();
+//            transaction.setTransactionType("Deposit");
+//            transaction.setAmount(amount);
+//            transaction.setAccountUser(account.getUser());
+//            transaction.setTransactionTime(new Date());
+//            transaction.setAccountID(account.getAccount_id());
+            Transaction transaction = new Transaction("Deposit", amount, LocalDateTime.now(), account.getUser(), account
+                    .getAccount_id());
+            transactionDAO.addTransaction(transaction);
 
         }
         else {
@@ -58,6 +70,7 @@ public class AccountService {
         }
         return account;
     }
+
 
     /**
      * withdraw a fund from a user account
@@ -67,7 +80,7 @@ public class AccountService {
      * @return
      */
 
-    public static Account withdraw(Account account, double amount){
+    public  Account withdraw(Account account, double amount){
         if(amount > account.getBalance()){
             System.out.println("Insufficient fund! Please change the withdraw amount ");
         }
@@ -76,12 +89,17 @@ public class AccountService {
         AccountDAO.updateAccount(account);
         account.setBalance(newAccountBalance);
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionType("Withdrawal");
-        transaction.setAmount(-amount);
-        transaction.setAccountUser(account.getUser());
-        transaction.setTransactionTime(new Date());
-        transaction.setAccountID(account.getAccount_id());
+//        Transaction transaction = new Transaction();
+//        transaction.setTransactionType("Withdrawal");
+//        transaction.setAmount(-amount);
+//        transaction.setAccountUser(account.getUser());
+//        transaction.setTransactionTime(new Date());
+//        transaction.setAccountID(account.getAccount_id());
+
+        Transaction transaction = new Transaction("Withdrawal", amount, LocalDateTime.now(), account.getUser(), account
+                .getAccount_id());
+        transactionDAO.addTransaction(transaction);
+
 
         return account;
     }

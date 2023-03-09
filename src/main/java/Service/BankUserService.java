@@ -1,6 +1,5 @@
 package Service;
 
-import DAO.AccountDAO;
 import DAO.BankUserDAO;
 import Model.BankUser;
 
@@ -17,4 +16,6 @@ public class BankUserService {
 
         return BankUserDAO.loginUser(bankUser);
     }
+
+
 }
