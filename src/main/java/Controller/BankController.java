@@ -121,6 +121,7 @@ public class BankController {
             ctx.status(400);
             return;
         }
+        body.account.setUser(body.user.getUser_id());
         Account newAccount = AccountService.createNewAccount(body.account);
         if (newAccount == null) {
             ctx.status(400);

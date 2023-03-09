@@ -18,7 +18,10 @@ public class Account {
     private int user;
 
     public Account(){
+    }
 
+    public Account(double balance) {
+        this.balance = balance;
     }
 
     public Account(int account_id, double balance, int user){
@@ -49,5 +52,14 @@ public class Account {
 
     public void setUser(int user) {
         this.user = user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account)o;
+        return account_id == account.account_id && balance == account.balance &&
+            user == account.user;
     }
 }
