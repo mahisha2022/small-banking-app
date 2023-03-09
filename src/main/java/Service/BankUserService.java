@@ -17,7 +17,7 @@ public class BankUserService {
         return BankUserDAO.loginUser(bankUser);
     }
 
-    public static boolean validateUser(BankUser user) {
-        return true;
+    public boolean validateUser(BankUser user) {
+        return accountDAO.isUserValid(user.user_id);
     }
 }
