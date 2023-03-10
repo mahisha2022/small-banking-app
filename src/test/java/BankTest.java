@@ -3,22 +3,22 @@ import Model.BankUser;
 import Model.Account;
 import Model.Transaction;
 import Util.ConnectionSingleton;
-import java.util.List;
-
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.After;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 public class BankTest {
 	BankController bankControl;
@@ -33,7 +33,7 @@ public class BankTest {
 		app = bankControl.startAPI();
 		webClient = HttpClient.newHttpClient();
 		mapper = new ObjectMapper();
-		app.start(8080);
+		app.start(9001);
 		Thread.sleep(1000);
 	}
 
@@ -49,7 +49,7 @@ public class BankTest {
 	@Test
 	public void registerTest() throws IOException, InterruptedException {
 		HttpRequest postRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/register"))
+			.uri(URI.create("http://localhost:9001/register"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"user\", \"password\": \"password\"}"
 			)).header("Content-Type", "application/json").build();
@@ -66,7 +66,7 @@ public class BankTest {
 	@Test
 	public void registerBlankUsernameTest() throws IOException, InterruptedException {
 		HttpRequest postRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/register"))
+			.uri(URI.create("http://localhost:9001/register"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"\", \"password\": \"password\"}"
 			)).header("Content-Type", "application/json").build();
@@ -80,7 +80,7 @@ public class BankTest {
 	@Test
 	public void registerShortPasswordTest() throws IOException, InterruptedException {
 		HttpRequest postRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/register"))
+			.uri(URI.create("http://localhost:9001/register"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"user\", \"password\": \"p\"}"
 			)).header("Content-Type", "application/json").build();
@@ -95,7 +95,7 @@ public class BankTest {
 	public void registerDuplicateUserTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/register"))
+			.uri(URI.create("http://localhost:9001/register"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"\", \"password\": \"password\"}"
 			)).header("Content-Type", "application/json").build();
@@ -111,7 +111,7 @@ public class BankTest {
 	public void loginTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postLoginRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/login"))
+			.uri(URI.create("http://localhost:9001/login"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"password\"}"
 			)).header("Content-Type", "application/json").build();
@@ -127,7 +127,7 @@ public class BankTest {
 	@Test
 	public void loginNonexistTest() throws IOException, InterruptedException {
 		HttpRequest postRequest = HttpRequest.newBuilder()
-			.uri(URI.create("http://localhost:8080/login"))
+			.uri(URI.create("http://localhost:9001/login"))
 			.POST(HttpRequest.BodyPublishers.ofString(
 				"{\"username\": \"user\", \"password\": \"password\"}"
 			)).header("Content-Type", "application/json").build();
@@ -142,7 +142,7 @@ public class BankTest {
 	public void loginIncorrectPasswordTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postLoginRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/login"))
+		.uri(URI.create("http://localhost:9001/login"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"wrongpassword\"}"
 		)).header("Content-Type", "application/json").build();
@@ -222,5 +222,19 @@ public class BankTest {
 		List<Account> actual = mapper.readValue(response.body().toString(), new TypeReference<List<Account>>(){});
 		Assert.assertEquals(1, actual.size());
 		Assert.assertTrue(actual.contains(expected));
+	}
+
+	@Test
+	public void getTransactionByUserIdEmptyTest() throws IOException, InterruptedException{
+		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
+				.uri(URI.create("http://localhost:9001/transactions/1"))
+				.build();
+		HttpResponse getTransactionByUserResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
+		int getTransactionByUserIdStatus = getTransactionByUserResponse.statusCode();
+		//the response status should be 200
+		Assert.assertEquals(200, getTransactionByUserIdStatus);
+		List<Transaction> transactions = mapper.readValue(getTransactionByUserResponse.body().toString(), new TypeReference<List<Transaction>>(){});
+
+		Assert.assertTrue(transactions.isEmpty());
 	}
 }
