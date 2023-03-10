@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -43,7 +42,7 @@ public class BankTest {
 	}
 
 	/**
-	* POST to localhost:8080/register
+	* POST to localhost:9001/register
 	* Valid new user (username = "user", password = "password") should respond 200 with user as body.
 	*/
 	@Test
@@ -104,7 +103,7 @@ public class BankTest {
 	}
 
 	/**
-	* POST to localhost:8080/login
+	* POST to localhost:9001/login
 	* Valid existing user (register user first) should respond 200 with user as body.
 	*/
 	@Test
@@ -159,7 +158,7 @@ public class BankTest {
 	public void newAccountTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/account/register"))
+		.uri(URI.create("http://localhost:9001/account/register"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"password\"}" + '\30' +
 			"{\"balance\": 10.0}"
@@ -179,7 +178,7 @@ public class BankTest {
 	public void newAccountInvalidUserTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/account/register"))
+		.uri(URI.create("http://localhost:9001/account/register"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"notuser\", \"password\": \"password\"}" + '\30' +
 			"{\"balance\": 10.0}"
@@ -196,7 +195,7 @@ public class BankTest {
 	public void newAccountWrongCredTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/account/register"))
+		.uri(URI.create("http://localhost:9001/account/register"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"wrongpassword\"}" + '\30' +
 			"{\"balance\": 10.0}"
@@ -212,7 +211,7 @@ public class BankTest {
 	public void getUserAccountsTest() throws IOException, InterruptedException {
 		newAccountTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/users/accounts"))
+		.uri(URI.create("http://localhost:9001/users/accounts"))
 		.POST(HttpRequest.BodyPublishers.ofString(
 			"{\"username\": \"user\", \"password\": \"password\"}"
 		)).header("Content-Type", "application/json").build();
@@ -224,11 +223,14 @@ public class BankTest {
 		Assert.assertTrue(actual.contains(expected));
 	}
 
+	/* FAILING
+	 *
+	 */
 	@Test
 	public void getTransactionByUserIdEmptyTest() throws IOException, InterruptedException{
 		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
-				.uri(URI.create("http://localhost:9001/transactions/1"))
-				.build();
+		.uri(URI.create("http://localhost:9001/transactions/1"))
+		.build();
 		HttpResponse getTransactionByUserResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
 		int getTransactionByUserIdStatus = getTransactionByUserResponse.statusCode();
 		//the response status should be 200
