@@ -16,13 +16,7 @@ import java.util.List;
 // Defining endpoints and handlers for controller
 public class BankController {
     private ObjectMapper mapper;
-    private TransactionService transactionService;
-    private BankUserService bankUserService;
 
-    public BankController(){
-        this.transactionService = new TransactionService();
-        this.bankUserService = new BankUserService();
-    }
     /**
      * Endpoints in the startAPI() method, as the test suite must receive a Javalin object from this method.
      * @return a Javalin app object which defines the behavior of the Javalin controller.
@@ -136,16 +130,14 @@ public class BankController {
     }
 
     private void getTransactionByUserIdHandler(Context ctx) throws JsonProcessingException{
-        int user_id = Integer.parseInt(ctx.pathParam("userId"));
-        List<Transaction> transactionByUserID = transactionService.getTransactionByUserID(user_id);
+        int user_id = Integer.parseInt(ctx.pathParam("user_id"));
+        List<Transaction> transactionByUserID = TransactionService.getTransactionByUserID(user_id);
         ctx.json(mapper.writeValueAsString(transactionByUserID));
-
-
     }
 
     private void addTransactionHandler(Context ctx) throws JsonProcessingException{
         Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
-        Transaction newTransaction = transactionService.addTransaction(transaction);
+        Transaction newTransaction = TransactionService.addTransaction(transaction);
 
         if(newTransaction != null){
             ctx.json(mapper.writeValueAsString(newTransaction));

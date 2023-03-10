@@ -9,13 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionDAO {
-    Connection connection = ConnectionSingleton.getConnection();
+    private static Connection connection = ConnectionSingleton.getConnection();
 
-    TransactionDAO(){
-
-    }
-
-    public Transaction addTransaction(Transaction transaction){
+    public static Transaction addTransaction(Transaction transaction){
 
         try {
             String sql = "INSERT INTO transactions VALUES(?,?,?,?,?,?)";
@@ -44,14 +40,14 @@ public class TransactionDAO {
 
 
 
-    public List<Transaction> transactionByUserID(int userId){
+    public static List<Transaction> transactionByUserID(int userId){
 
         List<Transaction> transactions = new ArrayList<>();
 
         try {
-
             String sql = "SELECT * FROM transactions WHERE account_user = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, userId);
 
             ResultSet rs = preparedStatement.executeQuery();
 
@@ -64,7 +60,6 @@ public class TransactionDAO {
 
                 transactions.add(newTransaction);
             }
-
 
         } catch (SQLException e){
             System.out.println(e.getMessage());
