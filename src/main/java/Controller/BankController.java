@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import java.text.ParseException;
 
 import java.util.List;
 
@@ -32,10 +33,10 @@ public class BankController {
         app.post("/login", this::loginHandler);
 
         /* Create new account */
-        app.post("/account/register", this::accountOpenHandler);
+        app.post("/register/account*", this::accountOpenHandler);
 
         /* Get account */
-        app.post("/users/accounts", this::accountGetHandler);
+        app.get("/users/accounts*", this::accountGetHandler);
         /* Get transaction by user id*/
         app.get("/transactions/{user_id}", this::getTransactionByUserIdHandler);
         app.post("/transactions/{user_id}", this::addTransactionHandler);
@@ -96,15 +97,47 @@ public class BankController {
     /* Get user from request body (JSON) and add user
      * responds with 400 (error) or 200 (success)
      */
+    private String[] getParams(String url, String path, String param1, String param2) throws ParseException {
+        String[] out = new String[2];
+        int paramsIdx = url.indexOf(path) + path.length();
+        if (paramsIdx < 0)
+            throw new ParseException("Bad endpoint", paramsIdx);
+        if (url.charAt(paramsIdx++) != '?')
+            throw new ParseException("No ?", paramsIdx);
+
+        if (!url.regionMatches(paramsIdx, param1, 0, param1.length()))
+            throw new ParseException("No paramiter: " + param1, paramsIdx);
+        
+        int amperIdx = url.indexOf('&', paramsIdx += param1.length());
+        try {
+            while (url.charAt(amperIdx - 1) == '\\')
+                amperIdx = url.indexOf('&', ++amperIdx);
+        } catch (IndexOutOfBoundsException e) {
+            throw new ParseException("No seperator", paramsIdx);
+        }
+        if (!url.regionMatches(amperIdx + 1, param2, 0, param2.length()))
+            throw new ParseException("No paramiter: " + param2, amperIdx + 1);
+        out[0] = url.substring(paramsIdx, amperIdx);
+        out[1] = url.substring(amperIdx + 1 + param2.length());
+        return out;
+    }
+
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        String[] jsonStrings = ctx.body().split("\30", 2);
-        BankUser user = mapper.readValue(jsonStrings[0], BankUser.class);
+        String[] cred;
+        try {
+            cred = getParams(ctx.fullUrl(), "/register/account", "username=", "password=");
+        } catch (ParseException e) {
+            ctx.status(400);
+            return;
+        }
+
+        BankUser user = new BankUser(cred[0], cred[1]);
         BankUser loginUser = BankUserService.loginUser(user);
         if (loginUser == null) {
             ctx.status(400);
             return;
         }
-        Account account = mapper.readValue(jsonStrings[1], Account.class);
+        Account account = mapper.readValue(ctx.body(), Account.class);
         account.setUser(loginUser.getUser_id());
         Account newAccount = AccountService.createNewAccount(account);
         if (newAccount == null) {
@@ -119,7 +152,14 @@ public class BankController {
      * responds with 200 and accounts in body
      */
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
-        BankUser user = mapper.readValue(ctx.body(), BankUser.class);
+        String[] cred;
+        try {
+            cred = getParams(ctx.fullUrl(), "/users/accounts", "username=", "password=");
+        } catch (ParseException e) {
+            ctx.status(400);
+            return;
+        }
+        BankUser user = new BankUser(cred[0], cred[1]);
         BankUser loginUser = BankUserService.loginUser(user);
         if (loginUser != null) {
             ctx.json(AccountService.getAccountsByUserID(loginUser.getUser_id()));

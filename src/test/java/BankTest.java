@@ -158,9 +158,8 @@ public class BankTest {
 	public void newAccountTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:9001/account/register"))
+		.uri(URI.create("http://localhost:9001/register/account?username=user&password=password"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"username\": \"user\", \"password\": \"password\"}" + '\30' +
 			"{\"balance\": 10.0}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
@@ -178,9 +177,8 @@ public class BankTest {
 	public void newAccountInvalidUserTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:9001/account/register"))
+		.uri(URI.create("http://localhost:9001/register/account?username=notuser&password=password"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"username\": \"notuser\", \"password\": \"password\"}" + '\30' +
 			"{\"balance\": 10.0}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
@@ -195,9 +193,8 @@ public class BankTest {
 	public void newAccountWrongCredTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:9001/account/register"))
+		.uri(URI.create("http://localhost:9001/register/account?username=user&password=wrongpassword"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"username\": \"user\", \"password\": \"wrongpassword\"}" + '\30' +
 			"{\"balance\": 10.0}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
@@ -211,10 +208,8 @@ public class BankTest {
 	public void getUserAccountsTest() throws IOException, InterruptedException {
 		newAccountTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:9001/users/accounts"))
-		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"username\": \"user\", \"password\": \"password\"}"
-		)).header("Content-Type", "application/json").build();
+		.uri(URI.create("http://localhost:9001/users/accounts?username=user&password=password"))
+		.build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
 		Account expected = new Account(1, 10.f, 1);
