@@ -111,7 +111,9 @@ public class Transaction {
         if (o == null || getClass() != o.getClass()) return false;
         Transaction transaction = (Transaction) o;
         return transactionID == transaction.transactionID && type == transaction.type &&
-            amount_cents == transaction.amount_cents && accountID_from == accountID_to &&
-            Math.abs(transactionTime.getTime() - transaction.transactionTime.getTime()) < 50;
+            amount_cents == transaction.amount_cents &&
+            accountID_from == transaction.accountID_from &&
+            accountID_to == transaction.accountID_to &&
+            Math.abs(transactionTime.getTime() - transaction.transactionTime.getTime()) < 100;
     }
 }

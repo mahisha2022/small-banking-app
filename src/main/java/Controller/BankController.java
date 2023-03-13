@@ -36,7 +36,8 @@ public class BankController {
         app.post("/register/account*", this::accountOpenHandler);
 
         /* Get account */
-        app.get("/users/accounts*", this::accountGetHandler);
+        app.get("/users/accounts*", this::accountsGetHandler);
+        app.get("/{accountID}/account*", this::accountGetByIDHandler);
         /* Get transaction by user id*/
         app.get("/{accountID}/transactions*", this::getTransactionsHandler);
         app.post("/{accountID}/transfer*", this::addTransactionHandler);
@@ -145,10 +146,32 @@ public class BankController {
         }
     }
 
+    private void accountGetByIDHandler(Context ctx) throws JsonProcessingException {
+        System.out.println("Account queried: " + ctx.pathParam("accountID"));
+        String[] cred;
+        try {
+            cred = getParams(ctx.fullUrl(), "username=", "password=");
+        } catch (ParseException e) {
+            ctx.status(401);
+            return;
+        }
+        System.out.println("Checkpoint");
+        BankUser user = new BankUser(cred[0], cred[1]);
+        BankUser loginUser = BankUserService.loginUser(user);
+        int accountID = Integer.parseInt(ctx.pathParam("accountID"));
+        Account account = AccountService.getAccountByID(accountID);
+        if (loginUser != null && account != null && loginUser.getUser_id() == account.getUser()) {
+            ctx.json(account);
+            ctx.status(200);
+        } else {
+            ctx.status(401);
+        }
+    }
+
     /* Get user's accounts
      * responds with 200 and accounts in body
      */
-    private void accountGetHandler(Context ctx) throws JsonProcessingException {
+    private void accountsGetHandler(Context ctx) throws JsonProcessingException {
         String[] cred;
         try {
             cred = getParams(ctx.fullUrl(), "username=", "password=");
@@ -206,18 +229,8 @@ public class BankController {
             ctx.status(400);
             return;
         }
-        Account account = AccountService.getAccountByID(accountID);
-        if (account == null || loginUser.getUser_id() != account.getUser()) {
-            ctx.status(400);
-            return;
-        }
         Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
-        System.out.println(transaction);
-        if (transaction.getAccountFrom() != account.getAccount_id()) {
-            ctx.status(400);
-            return;
-        }
-        Transaction newTransaction = TransactionService.addTransaction(transaction);
+        Transaction newTransaction = TransactionService.addTransaction(transaction, accountID, loginUser.getUser_id());
         if(newTransaction != null) {
             ctx.json(mapper.writeValueAsString(newTransaction));
             ctx.status(200);
