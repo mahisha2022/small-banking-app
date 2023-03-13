@@ -14,7 +14,7 @@ create table bank_user (
 
 create table account (
     account_id int primary key auto_increment,
-    balance decimal,
+    balance bigint,
     account_user int,
     foreign key (account_user) references bank_user(user_id)
 );

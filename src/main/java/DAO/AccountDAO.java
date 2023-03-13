@@ -16,7 +16,7 @@ public class AccountDAO {
             String sql = "INSERT INTO account (balance, account_user) VALUES (?,?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            preparedStatement.setDouble(1, account.getBalance());
+            preparedStatement.setLong(1, account.getBalance());
             preparedStatement.setInt(2, account.getUser());
 
             preparedStatement.executeUpdate();
@@ -40,7 +40,7 @@ public class AccountDAO {
 
             while (rs.next())
                 accounts.add(
-                    new Account(rs.getInt("account_id"), rs.getDouble("balance"), rs.getInt("account_user"))
+                    new Account(rs.getInt("account_id"), rs.getLong("balance"), rs.getInt("account_user"))
                 );
         } catch (SQLException e){
             System.out.println(e.getMessage());
@@ -73,7 +73,7 @@ public class AccountDAO {
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next())
                 accounts.add(
-                    new Account(rs.getInt("account_id"), rs.getDouble("balance"), rs.getInt("account_user"))
+                    new Account(rs.getInt("account_id"), rs.getLong("balance"), rs.getInt("account_user"))
                 );
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -88,7 +88,7 @@ public class AccountDAO {
             preparedStatement.setInt(1, accountID);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next())
-                return new Account(rs.getInt("account_id"), rs.getDouble("balance"),
+                return new Account(rs.getInt("account_id"), rs.getLong("balance"),
                     rs.getInt("account_user"));
         } catch (SQLException e) {
             System.out.println(e.getMessage());

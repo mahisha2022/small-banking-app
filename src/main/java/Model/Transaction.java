@@ -3,7 +3,7 @@ package Model;
 import java.sql.Timestamp;
 
 public class Transaction {
-    public enum TransactType { DEPOSIT("deposit", 0), WITHDRAWL("withdraw", 1), TRANSFER("transfer", 2);
+    public enum TransactType { DEPOSIT("deposit", 0), WITHDRAWL("withdrawl", 1), TRANSFER("transfer", 2);
         private final String typeStr;
         private final int key;
         private TransactType(String s, int i) {
