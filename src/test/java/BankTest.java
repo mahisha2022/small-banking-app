@@ -162,11 +162,11 @@ public class BankTest {
 		HttpRequest postRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/register/account?username=user&password=password"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"balance\": 10.0}"
+			"{\"balance\": 1000}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
-		Account expected = new Account(1, 10.f, 1);
+		Account expected = new Account(1, 1000, 1);
 		Account actual = mapper.readValue(response.body().toString(), Account.class);
 		Assert.assertEquals(expected, actual);
 	}
@@ -181,7 +181,7 @@ public class BankTest {
 		HttpRequest postRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/register/account?username=notuser&password=password"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"balance\": 10.0}"
+			"{\"balance\": 1000}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(400, response.statusCode());
@@ -192,39 +192,71 @@ public class BankTest {
 	* Should respond 400
 	*/
 	@Test
-	public void newAccountWrongCredTest() throws IOException, InterruptedException {
+	public void newAccountCredentialTest() throws IOException, InterruptedException {
 		registerTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/register/account?username=user&password=wrongpassword"))
 		.POST(HttpRequest.BodyPublishers.ofString(
-			"{\"balance\": 10.0}"
+			"{\"balance\": 1000}"
 		)).header("Content-Type", "application/json").build();
 		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(400, response.statusCode());
 	}
 
 	/*
+	 * Opens several accounts for a user
+	 */
+	@Test
+	public void multipleAccountsTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/register/account?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"balance\": 2300}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		Account expected = new Account(2, 2300, 1);
+		Account actual = mapper.readValue(response.body().toString(), Account.class);
+		Assert.assertEquals(expected, actual);
+
+		postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/register/account?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"balance\": 10095}"
+		)).header("Content-Type", "application/json").build();
+		response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		expected = new Account(3, 10095, 1);
+		actual = mapper.readValue(response.body().toString(), Account.class);
+		Assert.assertEquals(expected, actual);
+	}
+
+	/*
 	 * GET all accounts for a given user
+	 * Should reply with all accounts we added
 	 */
 	@Test
 	public void getUserAccountsTest() throws IOException, InterruptedException {
-		newAccountTest();
+		multipleAccountsTest();
 		HttpRequest getRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/users/accounts?username=user&password=password"))
 		.build();
 		HttpResponse response = webClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
-		Account expected = new Account(1, 10.f, 1);
+		Account[] expected = {new Account(1, 1000, 1), new Account(2, 2300, 1), new Account(3, 10095, 1)};
 		List<Account> actual = mapper.readValue(response.body().toString(), new TypeReference<List<Account>>(){});
-		Assert.assertEquals(1, actual.size());
-		Assert.assertTrue(actual.contains(expected));
+		Assert.assertEquals(3, actual.size());
+		for (Account account : expected)
+			Assert.assertTrue(actual.contains(account));
 	}
 
-	/* FAILING
-	 *
+	/*
+	 * Creates a new transaction
+	 * Should respond with 200 and created transaction
 	 */
 	@Test
-	public void newTransaction() throws IOException, InterruptedException{
+	public void newTransactionTest() throws IOException, InterruptedException {
 		newAccountTest();
 		HttpRequest postRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
@@ -235,25 +267,118 @@ public class BankTest {
 		long time = System.currentTimeMillis();
 		Assert.assertEquals(200, response.statusCode());
 		Transaction actual = mapper.readValue(response.body().toString(), Transaction.class);
-		System.out.println("Response: " + actual);
 		Transaction expected = new Transaction(1, TransactType.DEPOSIT, 1000, new Timestamp(time), 1, 1);
 		Assert.assertEquals(expected, actual);
 	}
 
+	/*
+	 * Creates multiple transactions
+	 */
 	@Test
-	public void getTransactionByUserIdEmptyTest() throws IOException, InterruptedException{
-		newTransaction();
+	public void multipleTransactionsTest() throws IOException, InterruptedException {
+		newTransactionTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 200, \"accountFrom\": 1, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		long time = System.currentTimeMillis();
+		Assert.assertEquals(200, response.statusCode());
+		Transaction actual = mapper.readValue(response.body().toString(), Transaction.class);
+		Transaction expected = new Transaction(2, TransactType.DEPOSIT, 200, new Timestamp(time), 1, 1);
+		Assert.assertEquals(expected, actual);
+
+		postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"WITHDRAWL\", \"amount\": 500, \"accountFrom\": 1, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		time = System.currentTimeMillis();
+		Assert.assertEquals(200, response.statusCode());
+		actual = mapper.readValue(response.body().toString(), Transaction.class);
+		expected = new Transaction(3, TransactType.WITHDRAWL, 500, new Timestamp(time), 1, 1);
+		Assert.assertEquals(expected, actual);
+	}
+
+	/*
+	* Tries to make a transaction with invalid user
+	* Should respond 400
+	*/
+	@Test
+	public void transactionInvalidUserTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=notuser&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 1000, \"accountFrom\": 1, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	* Tries to make a transaction with wrong credentials
+	* Should respond 400
+	*/
+	@Test
+	public void transactionCredentialsTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=wrongpassword"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 1000, \"accountFrom\": 1, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	* Tryes to make a transaction from an invalid account
+	* Should respond 400
+	*/
+	@Test
+	public void transactionNonExistantFromAccountTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 1000, \"accountFrom\": 2, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	* Tryes to make a transaction with invalid recipiant account
+	* Should respond 400
+	*/
+	@Test
+	public void transactionNonExistantToAccountTest() throws IOException, InterruptedException {
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 1000, \"accountFrom\": 1, \"accountTo\": 2}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(400, response.statusCode());
+	}
+
+	/*
+	 * Should return all transactions created
+	 */
+	@Test
+	public void getTransactionByUserIdTest() throws IOException, InterruptedException {
+		multipleTransactionsTest();
 		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/1/transactions?username=user&password=password"))
 		.build();
 		HttpResponse getTransactionByUserResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
-		long time = System.currentTimeMillis();
 		int getTransactionByUserIdStatus = getTransactionByUserResponse.statusCode();
-		//the response status should be 200
 		Assert.assertEquals(200, getTransactionByUserIdStatus);
 		List<Transaction> actual = mapper.readValue(getTransactionByUserResponse.body().toString(), new TypeReference<List<Transaction>>(){});
-		Transaction expected = new Transaction(1, TransactType.DEPOSIT, 1000, new Timestamp(time), 1, 1);
-		Assert.assertEquals(1, actual.size());
-		Assert.assertTrue(actual.contains(expected));
+		Assert.assertEquals(3, actual.size());
 	}
 }
