@@ -31,4 +31,8 @@ public class AccountService {
     public static Account getAccountByID(int accountID) {
         return AccountDAO.getAccountByID(accountID);
     }
+
+    public static void updateAccountBalance(int accountID, long newBalance) {
+        AccountDAO.updateAccountBalance(accountID, newBalance);
+    }
 }
