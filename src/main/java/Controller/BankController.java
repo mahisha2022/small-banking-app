@@ -97,46 +97,48 @@ public class BankController {
     /* Get user from request body (JSON) and add user
      * responds with 400 (error) or 200 (success)
      */
-    private String[] getParams(String url, String param1, String param2) throws ParseException {
-        String[] out = new String[2];
-        int paramsIdx = url.indexOf('?');
-        if (paramsIdx < 0 || url.charAt(paramsIdx++) != '?')
-            throw new ParseException("No ?", paramsIdx);
-
-        if (!url.regionMatches(paramsIdx, param1, 0, param1.length()))
-            throw new ParseException("No paramiter: " + param1, paramsIdx);
-        
-        int amperIdx = url.indexOf('&', paramsIdx += param1.length());
-        try {
-            while (url.charAt(amperIdx - 1) == '\\')
-                amperIdx = url.indexOf('&', ++amperIdx);
-        } catch (IndexOutOfBoundsException e) {
-            throw new ParseException("No seperator", paramsIdx);
+    private static String unEncodeReserveChars(String in) {
+        String out = new String();
+        for (int i = 0; i < in.length(); ++i) {
+            char c = in.charAt(i);
+            out += c == '%' ? (char)Integer.parseInt(in.substring(++i, ++i + 1), 16) : c;
         }
-        if (!url.regionMatches(amperIdx + 1, param2, 0, param2.length()))
-            throw new ParseException("No paramiter: " + param2, amperIdx + 1);
-        out[0] = url.substring(paramsIdx, amperIdx);
-        out[1] = url.substring(amperIdx + 1 + param2.length());
         return out;
     }
 
-    private void accountOpenHandler(Context ctx) throws JsonProcessingException {
-        String[] cred;
-        try {
-            cred = getParams(ctx.fullUrl(), "username=", "password=");
-        } catch (ParseException e) {
-            ctx.status(400);
-            return;
-        }
+    private static BankUser authUser(String url) {
+        int paramsIdx = url.indexOf('?');
+        if (paramsIdx < 0 || url.charAt(paramsIdx++) != '?')
+            return null;
 
-        BankUser user = new BankUser(cred[0], cred[1]);
+        String param1 = "username=", param2 = "password=";
+        if (!url.regionMatches(paramsIdx, param1, 0, param1.length()))
+            return null;
+        
+        int amperIdx = url.indexOf('&', paramsIdx += param1.length());
+        if (amperIdx < 0)
+            return null;
+        if (!url.regionMatches(amperIdx + 1, param2, 0, param2.length()))
+            return null;
+        String uname = unEncodeReserveChars(url.substring(paramsIdx, amperIdx)),
+            passwd = unEncodeReserveChars(url.substring(amperIdx + 1 + param2.length()));
+        BankUser user = new BankUser(uname, passwd);
+        /*
+        BankUser user = new BankUser(unEncodeReserveChars(url.substring(paramsIdx, amperIdx)),
+            unEncodeReserveChars(url.substring(amperIdx + 1 + param2.length())));
+            */
         BankUser loginUser = BankUserService.loginUser(user);
-        if (loginUser == null) {
+        return loginUser;
+    }
+
+    private void accountOpenHandler(Context ctx) throws JsonProcessingException {
+        BankUser user = authUser(ctx.fullUrl());
+        if (user == null) {
             ctx.status(400);
             return;
         }
         Account account = mapper.readValue(ctx.body(), Account.class);
-        account.setUser(loginUser.getUser_id());
+        account.setUser(user.getUser_id());
         Account newAccount = AccountService.createNewAccount(account);
         if (newAccount == null) {
             ctx.status(400);
@@ -147,20 +149,10 @@ public class BankController {
     }
 
     private void accountGetByIDHandler(Context ctx) throws JsonProcessingException {
-        System.out.println("Account queried: " + ctx.pathParam("accountID"));
-        String[] cred;
-        try {
-            cred = getParams(ctx.fullUrl(), "username=", "password=");
-        } catch (ParseException e) {
-            ctx.status(401);
-            return;
-        }
-        System.out.println("Checkpoint");
-        BankUser user = new BankUser(cred[0], cred[1]);
-        BankUser loginUser = BankUserService.loginUser(user);
+        BankUser user = authUser(ctx.fullUrl());
         int accountID = Integer.parseInt(ctx.pathParam("accountID"));
         Account account = AccountService.getAccountByID(accountID);
-        if (loginUser != null && account != null && loginUser.getUser_id() == account.getUser()) {
+        if (user != null && account != null && user.getUser_id() == account.getUser()) {
             ctx.json(account);
             ctx.status(200);
         } else {
@@ -172,17 +164,9 @@ public class BankController {
      * responds with 200 and accounts in body
      */
     private void accountsGetHandler(Context ctx) throws JsonProcessingException {
-        String[] cred;
-        try {
-            cred = getParams(ctx.fullUrl(), "username=", "password=");
-        } catch (ParseException e) {
-            ctx.status(401);
-            return;
-        }
-        BankUser user = new BankUser(cred[0], cred[1]);
-        BankUser loginUser = BankUserService.loginUser(user);
-        if (loginUser != null) {
-            ctx.json(AccountService.getAccountsByUserID(loginUser.getUser_id()));
+        BankUser user = authUser(ctx.fullUrl());
+        if (user != null) {
+            ctx.json(AccountService.getAccountsByUserID(user.getUser_id()));
             ctx.status(200);
         } else {
             ctx.status(401);
@@ -190,22 +174,14 @@ public class BankController {
     }
 
     private void getTransactionsHandler(Context ctx) throws JsonProcessingException {
-        String[] cred;
+        BankUser user = authUser(ctx.fullUrl());
+        if (user == null) {
+            ctx.status(401);
+            return;
+        }
         int accountID = Integer.parseInt(ctx.pathParam("accountID"));
-        try {
-            cred = getParams(ctx.fullUrl(), "username=", "password=");
-        } catch (ParseException e) {
-            ctx.status(401);
-            return;
-        }
-        BankUser user = new BankUser(cred[0], cred[1]);
-        BankUser loginUser = BankUserService.loginUser(user);
-        if (loginUser == null) {
-            ctx.status(401);
-            return;
-        }
         Account account = AccountService.getAccountByID(accountID);
-        if (account == null || loginUser.getUser_id() != account.getUser()) {
+        if (account == null || user.getUser_id() != account.getUser()) {
             ctx.status(401);
             return;
         }
@@ -215,22 +191,14 @@ public class BankController {
     }
 
     private void addTransactionHandler(Context ctx) throws JsonProcessingException {
-        String[] cred;
+        BankUser user = authUser(ctx.fullUrl());
+        if (user == null) {
+            ctx.status(400);
+            return;
+        }
         int accountID = Integer.parseInt(ctx.pathParam("accountID"));
-        try {
-            cred = getParams(ctx.fullUrl(), "username=", "password=");
-        } catch (ParseException e) {
-            ctx.status(400);
-            return;
-        }
-        BankUser user = new BankUser(cred[0], cred[1]);
-        BankUser loginUser = BankUserService.loginUser(user);
-        if (loginUser == null) {
-            ctx.status(400);
-            return;
-        }
         Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
-        Transaction newTransaction = TransactionService.addTransaction(transaction, accountID, loginUser.getUser_id());
+        Transaction newTransaction = TransactionService.addTransaction(transaction, accountID, user.getUser_id());
         if(newTransaction != null) {
             ctx.json(mapper.writeValueAsString(newTransaction));
             ctx.status(200);

@@ -16,23 +16,19 @@ public class TransactionService {
     }
 
     public static Transaction addTransaction(Transaction transaction, int accountID_from, int userID_from) {
-        System.out.println(transaction.getType() + "\nCheckpoint 1");
         long amount = transaction.getAmount();
         int to_id = transaction.getAccountTo();
         if (transaction.getType() != TransactType.TRANSFER && accountID_from != to_id ||
             accountID_from != transaction.getAccountFrom() || amount < 0)
             return null;
-        System.out.println("Checkpoint 2");
         Account from = AccountService.getAccountByID(accountID_from);
         if (from == null || userID_from != from.getUser() ||
             transaction.getType() != Transaction.TransactType.DEPOSIT &&
             from.getBalance() < amount)
             return null;
-        System.out.println("Checkpoint 3");
         Account to = AccountService.getAccountByID(to_id);
         if (to == null)
             return null;
-        System.out.println("Checkpoint 4");
         AccountService.updateAccountBalance(accountID_from, from.getBalance() +
             (transaction.getType() == TransactType.DEPOSIT ? amount : -amount));
         if (transaction.getType() == TransactType.TRANSFER)

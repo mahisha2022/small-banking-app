@@ -174,6 +174,31 @@ public class BankTest {
 		Assert.assertEquals(expected, actual);
 	}
 
+	@Test
+	public void escapeURLTest() throws IOException, InterruptedException {
+		HttpRequest postRequest = HttpRequest.newBuilder()
+			.uri(URI.create("http://localhost:9001/register"))
+			.POST(HttpRequest.BodyPublishers.ofString(
+				"{\"username\": \"user#2\", \"password\": \"money$$$\"}"
+			)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		BankUser expectedUser = new BankUser(1, "user#2", "money$$$");
+		BankUser actualUser = mapper.readValue(response.body().toString(), BankUser.class);
+		Assert.assertEquals(expectedUser, actualUser);
+
+		postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/register/account?username=user%232&password=money%24%24%24"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"balance\": 1000}"
+		)).header("Content-Type", "application/json").build();
+		response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, response.statusCode());
+		Account expected = new Account(1, 1000, 1);
+		Account actual = mapper.readValue(response.body().toString(), Account.class);
+		Assert.assertEquals(expected, actual);
+	}
+
 	/*
 	* Tries to register a new account under a BankUser that doesn't exist
 	* Should respond 400
