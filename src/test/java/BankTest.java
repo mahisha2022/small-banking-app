@@ -383,7 +383,6 @@ public class BankTest {
 		Account expectedAccount = new Account(1, 1700, 1);
 		Account actualAccount = mapper.readValue(response.body().toString(), Account.class);
 		Assert.assertEquals(expectedAccount, actualAccount);
-
 	}
 
 	/*
@@ -454,15 +453,43 @@ public class BankTest {
 	 * Should return all transactions created
 	 */
 	@Test
-	public void getTransactionByUserIdTest() throws IOException, InterruptedException {
+	public void getTransactionByAccountIdTest() throws IOException, InterruptedException {
 		multipleTransactionsTest();
 		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/1/transactions?username=user&password=password"))
 		.build();
-		HttpResponse getTransactionByUserResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
-		int getTransactionByUserIdStatus = getTransactionByUserResponse.statusCode();
-		Assert.assertEquals(200, getTransactionByUserIdStatus);
-		List<Transaction> actual = mapper.readValue(getTransactionByUserResponse.body().toString(), new TypeReference<List<Transaction>>(){});
+		HttpResponse getResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
+		Assert.assertEquals(200, getResponse.statusCode());
+		List<Transaction> actual = mapper.readValue(getResponse.body().toString(), new TypeReference<List<Transaction>>(){});
 		Assert.assertEquals(3, actual.size());
+	}
+
+	/*
+	 * Should return all transactions created
+	 */
+	@Test
+	public void getTransfersTest() throws IOException, InterruptedException {
+		transferTest();
+		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/2/transactions?username=user&password=password"))
+		.build();
+		HttpResponse getResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
+		long time = System.currentTimeMillis();
+		Assert.assertEquals(200, getResponse.statusCode());
+		Transaction expected = new Transaction(1, TransactType.TRANSFER, 1000, new Timestamp(time), 3, 2);
+		List<Transaction> actual = mapper.readValue(getResponse.body().toString(), new TypeReference<List<Transaction>>(){});
+		Assert.assertEquals(1, actual.size());
+		Assert.assertTrue(actual.contains(expected));
+
+		getTransactionByUserIdRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/3/transactions?username=user&password=password"))
+		.build();
+		getResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
+		time = System.currentTimeMillis();
+		Assert.assertEquals(200, getResponse.statusCode());
+		expected = new Transaction(1, TransactType.TRANSFER, 1000, new Timestamp(time), 3, 2);
+		actual = mapper.readValue(getResponse.body().toString(), new TypeReference<List<Transaction>>(){});
+		Assert.assertEquals(1, actual.size());
+		Assert.assertTrue(actual.contains(expected));
 	}
 }
