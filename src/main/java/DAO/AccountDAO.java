@@ -63,8 +63,7 @@ public class AccountDAO {
         return account;
     }
 
-    public static List<Account> getAccountsByUserID(int account_user){
-
+    public static List<Account> getAccountsByUserID(int account_user) {
         List<Account> accounts = new ArrayList<>();
         try {
             String sql = "SELECT * FROM account WHERE account_user = ?";
@@ -80,5 +79,20 @@ public class AccountDAO {
             System.out.println(e.getMessage());
         }
         return accounts;
+    }
+
+    public static Account getAccountByID(int accountID) {
+        try {
+            String sql = "SELECT * FROM account WHERE account_id = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, accountID);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next())
+                return new Account(rs.getInt("account_id"), rs.getDouble("balance"),
+                    rs.getInt("account_user"));
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 }

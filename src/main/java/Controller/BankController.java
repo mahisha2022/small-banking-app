@@ -38,12 +38,11 @@ public class BankController {
         /* Get account */
         app.get("/users/accounts*", this::accountGetHandler);
         /* Get transaction by user id*/
-        app.get("/transactions/{user_id}", this::getTransactionByUserIdHandler);
-        app.post("/transactions/{user_id}", this::addTransactionHandler);
+        app.get("/{accountID}/transactions*", this::getTransactionsHandler);
+        app.post("/{accountID}/transfer*", this::addTransactionHandler);
 
         return app;
     }
-
 
     /**
      * 1. Handler to POST and new registration endpoint.
@@ -97,12 +96,10 @@ public class BankController {
     /* Get user from request body (JSON) and add user
      * responds with 400 (error) or 200 (success)
      */
-    private String[] getParams(String url, String path, String param1, String param2) throws ParseException {
+    private String[] getParams(String url, String param1, String param2) throws ParseException {
         String[] out = new String[2];
-        int paramsIdx = url.indexOf(path) + path.length();
-        if (paramsIdx < 0)
-            throw new ParseException("Bad endpoint", paramsIdx);
-        if (url.charAt(paramsIdx++) != '?')
+        int paramsIdx = url.indexOf('?');
+        if (paramsIdx < 0 || url.charAt(paramsIdx++) != '?')
             throw new ParseException("No ?", paramsIdx);
 
         if (!url.regionMatches(paramsIdx, param1, 0, param1.length()))
@@ -125,7 +122,7 @@ public class BankController {
     private void accountOpenHandler(Context ctx) throws JsonProcessingException {
         String[] cred;
         try {
-            cred = getParams(ctx.fullUrl(), "/register/account", "username=", "password=");
+            cred = getParams(ctx.fullUrl(), "username=", "password=");
         } catch (ParseException e) {
             ctx.status(400);
             return;
@@ -154,9 +151,9 @@ public class BankController {
     private void accountGetHandler(Context ctx) throws JsonProcessingException {
         String[] cred;
         try {
-            cred = getParams(ctx.fullUrl(), "/users/accounts", "username=", "password=");
+            cred = getParams(ctx.fullUrl(), "username=", "password=");
         } catch (ParseException e) {
-            ctx.status(400);
+            ctx.status(401);
             return;
         }
         BankUser user = new BankUser(cred[0], cred[1]);
@@ -169,20 +166,62 @@ public class BankController {
         }
     }
 
-    private void getTransactionByUserIdHandler(Context ctx) throws JsonProcessingException{
-        int user_id = Integer.parseInt(ctx.pathParam("user_id"));
-        List<Transaction> transactionByUserID = TransactionService.getTransactionByUserID(user_id);
+    private void getTransactionsHandler(Context ctx) throws JsonProcessingException {
+        String[] cred;
+        int accountID = Integer.parseInt(ctx.pathParam("accountID"));
+        try {
+            cred = getParams(ctx.fullUrl(), "username=", "password=");
+        } catch (ParseException e) {
+            ctx.status(401);
+            return;
+        }
+        BankUser user = new BankUser(cred[0], cred[1]);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser == null) {
+            ctx.status(401);
+            return;
+        }
+        Account account = AccountService.getAccountByID(accountID);
+        if (account == null || loginUser.getUser_id() != account.getUser()) {
+            ctx.status(401);
+            return;
+        }
+        List<Transaction> transactionByUserID = TransactionService.getTransactionsByAccountID(accountID);
         ctx.json(mapper.writeValueAsString(transactionByUserID));
+        ctx.status(200);
     }
 
-    private void addTransactionHandler(Context ctx) throws JsonProcessingException{
-        Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
-        Transaction newTransaction = TransactionService.addTransaction(transaction);
-
-        if(newTransaction != null){
-            ctx.json(mapper.writeValueAsString(newTransaction));
+    private void addTransactionHandler(Context ctx) throws JsonProcessingException {
+        String[] cred;
+        int accountID = Integer.parseInt(ctx.pathParam("accountID"));
+        try {
+            cred = getParams(ctx.fullUrl(), "username=", "password=");
+        } catch (ParseException e) {
+            ctx.status(400);
+            return;
         }
-        else {
+        BankUser user = new BankUser(cred[0], cred[1]);
+        BankUser loginUser = BankUserService.loginUser(user);
+        if (loginUser == null) {
+            ctx.status(400);
+            return;
+        }
+        Account account = AccountService.getAccountByID(accountID);
+        if (account == null || loginUser.getUser_id() != account.getUser()) {
+            ctx.status(400);
+            return;
+        }
+        Transaction transaction = mapper.readValue(ctx.body(), Transaction.class);
+        System.out.println(transaction);
+        if (transaction.getAccountFrom() != account.getAccount_id()) {
+            ctx.status(400);
+            return;
+        }
+        Transaction newTransaction = TransactionService.addTransaction(transaction);
+        if(newTransaction != null) {
+            ctx.json(mapper.writeValueAsString(newTransaction));
+            ctx.status(200);
+        } else {
             ctx.status(400);
         }
     }

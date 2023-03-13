@@ -10,20 +10,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class AccountService {
-
-    private TransactionDAO transactionDAO;
-    private AccountDAO accountDAO;
-    public AccountService(TransactionDAO transactionDAO, AccountDAO accountDAO){
-        this.transactionDAO = transactionDAO;
-        this.accountDAO = accountDAO;
-
-    }
     /**
      * Create a new account for existed user, validate the user before creating new account
      * @param account
      * @return
      */
-    public static Account createNewAccount(Account account){
+    public static Account createNewAccount(Account account) {
         if(BankUserDAO.isUserValid(account.getUser()))
             return AccountDAO.createNewAccount(account);
         else
@@ -31,13 +23,16 @@ public class AccountService {
     }
 
     /**
-     *
      * @param account_user
      * @return
      */
 
-    public static List<Account> getAccountsByUserID(int account_user){
+    public static List<Account> getAccountsByUserID(int account_user) {
         return AccountDAO.getAccountsByUserID(account_user);
+    }
+
+    public static Account getAccountByID(int accountID) {
+        return AccountDAO.getAccountByID(accountID);
     }
 
     /**
@@ -48,6 +43,7 @@ public class AccountService {
      * @return
      */
 
+    /*
     public  Account deposit(Account account, double amount){
         if(amount > 0){
             double newAccountBalance = account.getBalance() + amount;
@@ -70,7 +66,7 @@ public class AccountService {
         }
         return account;
     }
-
+    */
 
     /**
      * withdraw a fund from a user account
@@ -80,6 +76,7 @@ public class AccountService {
      * @return
      */
 
+    /*
     public  Account withdraw(Account account, double amount){
         if(amount > account.getBalance()){
             System.out.println("Insufficient fund! Please change the withdraw amount ");
@@ -103,4 +100,5 @@ public class AccountService {
 
         return account;
     }
+    */
 }

@@ -2,6 +2,7 @@ import Controller.BankController;
 import Model.BankUser;
 import Model.Account;
 import Model.Transaction;
+import Model.Transaction.TransactType;
 import Util.ConnectionSingleton;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +19,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.sql.Timestamp;
 
 public class BankTest {
 	BankController bankControl;
@@ -207,10 +209,10 @@ public class BankTest {
 	@Test
 	public void getUserAccountsTest() throws IOException, InterruptedException {
 		newAccountTest();
-		HttpRequest postRequest = HttpRequest.newBuilder()
+		HttpRequest getRequest = HttpRequest.newBuilder()
 		.uri(URI.create("http://localhost:9001/users/accounts?username=user&password=password"))
 		.build();
-		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		HttpResponse response = webClient.send(getRequest, HttpResponse.BodyHandlers.ofString());
 		Assert.assertEquals(200, response.statusCode());
 		Account expected = new Account(1, 10.f, 1);
 		List<Account> actual = mapper.readValue(response.body().toString(), new TypeReference<List<Account>>(){});
@@ -222,16 +224,36 @@ public class BankTest {
 	 *
 	 */
 	@Test
+	public void newTransaction() throws IOException, InterruptedException{
+		newAccountTest();
+		HttpRequest postRequest = HttpRequest.newBuilder()
+		.uri(URI.create("http://localhost:9001/1/transfer?username=user&password=password"))
+		.POST(HttpRequest.BodyPublishers.ofString(
+			"{\"type\": \"DEPOSIT\", \"amount\": 1000, \"accountFrom\": 1, \"accountTo\": 1}"
+		)).header("Content-Type", "application/json").build();
+		HttpResponse response = webClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
+		long time = System.currentTimeMillis();
+		Assert.assertEquals(200, response.statusCode());
+		Transaction actual = mapper.readValue(response.body().toString(), Transaction.class);
+		System.out.println("Response: " + actual);
+		Transaction expected = new Transaction(1, TransactType.DEPOSIT, 1000, new Timestamp(time), 1, 1);
+		Assert.assertEquals(expected, actual);
+	}
+
+	@Test
 	public void getTransactionByUserIdEmptyTest() throws IOException, InterruptedException{
+		newTransaction();
 		HttpRequest getTransactionByUserIdRequest = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:9001/transactions/1"))
+		.uri(URI.create("http://localhost:9001/1/transactions?username=user&password=password"))
 		.build();
 		HttpResponse getTransactionByUserResponse = webClient.send(getTransactionByUserIdRequest, HttpResponse.BodyHandlers.ofString());
+		long time = System.currentTimeMillis();
 		int getTransactionByUserIdStatus = getTransactionByUserResponse.statusCode();
 		//the response status should be 200
 		Assert.assertEquals(200, getTransactionByUserIdStatus);
-		List<Transaction> transactions = mapper.readValue(getTransactionByUserResponse.body().toString(), new TypeReference<List<Transaction>>(){});
-
-		Assert.assertTrue(transactions.isEmpty());
+		List<Transaction> actual = mapper.readValue(getTransactionByUserResponse.body().toString(), new TypeReference<List<Transaction>>(){});
+		Transaction expected = new Transaction(1, TransactType.DEPOSIT, 1000, new Timestamp(time), 1, 1);
+		Assert.assertEquals(1, actual.size());
+		Assert.assertTrue(actual.contains(expected));
 	}
 }
